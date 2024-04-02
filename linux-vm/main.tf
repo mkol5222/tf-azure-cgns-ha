@@ -153,10 +153,11 @@ user_data = filebase64("${path.module}/cloud-init.yaml")
     storage_account_type = "Premium_LRS"
   }
 
+// "Canonical:0001-com-ubuntu-minimal-jammy:minimal-22_04-lts-gen2:latest"
   source_image_reference {
     publisher = "Canonical"
-    offer     = "UbuntuServer"
-    sku       = "18.04-LTS"
+    offer     = "0001-com-ubuntu-minimal-jammy" //"UbuntuServer"
+    sku       = "minimal-22_04-lts-gen2" //"18.04-LTS"
     version   = "latest"
   }
 
