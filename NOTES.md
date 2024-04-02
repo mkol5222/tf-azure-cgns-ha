@@ -54,10 +54,54 @@ mgmt_cli -r true add administrator name "api" permissions-profile "read write al
 # add api-key
 # https://sc1.checkpoint.com/documents/latest/APIs/index.html#cli/add-api-key~v1.9.1%20
 mgmt_cli -r true add api-key admin-name "api"  --domain 'System Data' --format json
+# public IP?
+curl_cli ip.iol.cz/ip/
 
+mgmt_cli -r true add simple-cluster name "cpha"\
+    color "pink"\
+    version "R81.20"\
+    ip-address "10.247.136.6"\
+    os-name "Gaia"\
+    cluster-mode "cluster-xl-ha"\
+    firewall true\
+    vpn false\
+    interfaces.1.name "eth0"\
+    interfaces.1.ip-address "10.247.136.6"\
+    interfaces.1.network-mask "255.255.255.240" \
+    interfaces.1.interface-type "cluster"\
+    interfaces.1.topology "EXTERNAL"\
+    interfaces.1.anti-spoofing false \
+    interfaces.2.name "eth1"\
+    interfaces.2.interface-type "sync"\
+    interfaces.2.topology "INTERNAL"\
+    interfaces.2.topology-settings.ip-address-behind-this-interface "network defined by the interface ip and net mask"\
+    interfaces.2.topology-settings.interface-leads-to-dmz false\
+    interfaces.2.anti-spoofing false \
+    members.1.name "cpha1"\
+    members.1.one-time-password "WelcomeHome1984"\
+    members.1.ip-address "10.247.136.4"\
+    members.1.interfaces.1.name "eth0"\
+    members.1.interfaces.1.ip-address "10.247.136.4"\
+    members.1.interfaces.1.network-mask "255.255.255.240"\
+    members.1.interfaces.2.name "eth1"\
+    members.1.interfaces.2.ip-address "10.247.136.21"\
+    members.1.interfaces.2.network-mask "255.255.255.240"\
+    members.2.name "cpha2"\
+    members.2.one-time-password "WelcomeHome1984"\
+    members.2.ip-address "10.247.136.5"\
+    members.2.interfaces.1.name "eth0"\
+    members.2.interfaces.1.ip-address "10.247.136.5"\
+    members.2.interfaces.1.network-mask "255.255.255.240"\
+    members.2.interfaces.2.name "eth1"\
+    members.2.interfaces.2.ip-address "10.247.136.22"\
+    members.2.interfaces.2.network-mask "255.255.255.240"\
+    --format json
 
+# now we have CPMAN IP and API KEY - make the note
+#    e.g. 4.210.189.93 / 1qXQlEsBsdd2RHn4p1yagw==
 
 # connect to Linux
+alias tf=terraform
 mkdir -p ~/.ssh
 tf output -raw linux_key > ~/.ssh/linux1.key
 chmod o= ~/.ssh/linux1.key
@@ -69,6 +113,15 @@ tf output -raw linux_ssh_config | tee  ~/.ssh/config
 # should get Ubuntu machine prompt
 ssh linux1
 # while true; do ping -c 1 1.1.1.1; curl -s ip.iol.cz/ip/ -m1; echo; sleep 2; done
+
+
+# remember front end LB rule 80->cpha:8080
+
+# remember NGSs allowing 8080 to members eth0
+
+# remember routing from net-linux via CP!
+terraform apply -auto-approve -var route_through_firewall=true
+
 
 #####
 # destroy
@@ -90,4 +143,5 @@ az ad sp list --all --show-mine -o table
 
 ---
 ### replacing Linux - e.g. to reinstall from scratch
- terraform apply -replace module.linux1.azurerm_linux_virtual_machine.linuxvm
+tf apply -target module.linux -replace module.linux.azurerm_linux_virtual_machine.linuxvm -a
+uto-approve

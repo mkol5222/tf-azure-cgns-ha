@@ -8,6 +8,24 @@ runcmd:
    microk8s enable dns ingress cert-manager
    microk8s kubectl create deploy web --image=nginx --replicas=3
    microk8s kubectl expose deploy web --port=80 --target-port=80 --type=NodePort
+   cat <<EOF | microk8s kubectl apply -f -
+   apiVersion: networking.k8s.io/v1
+   kind: Ingress
+   metadata:
+     name: default-web
+   spec:
+     ingressClassName: public
+     rules:
+     - http:
+         paths:
+         - path: /
+           pathType: Prefix
+           backend:
+             service:
+               name: web
+               port:
+                 number: 80
+   EOF
         
 apt_update: true
 apt_upgrade: true
