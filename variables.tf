@@ -11,3 +11,6 @@ variable "subscription_id" {
   type = string
 }
 
+variable "route_through_firewall" {
+  default = false
+}

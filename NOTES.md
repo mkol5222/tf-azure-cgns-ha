@@ -36,9 +36,18 @@ tf apply -target module.linux -auto-approve
 
 # on cpman
 
+# wait for cpman initialization - e.g. on serial console
+#   or on SSH: tail -f /var/log/cloud_config.log
 ssh admin@$(terraform output -raw cpman_ip)
-mgmt_cli -r true set api-settings accepted-api-calls-from 'All IP addresses' --domain 'System Data'; api restart
 
+# is FTCW done? AFTER run_cmd Executing: config_system
+tail -f /var/log/cloud_config.log
+
+# is management ready (API readiness test != FAILED)
+watch -d api status
+
+# allow API access
+mgmt_cli -r true set api-settings accepted-api-calls-from 'All IP addresses' --domain 'System Data'; api restart
 # create api user
 mgmt_cli -r true add administrator name "api" permissions-profile "read write all" authentication-method "api key"  --domain 'System Data' --format json
 

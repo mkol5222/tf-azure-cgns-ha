@@ -86,7 +86,7 @@ maintenance_mode_password_hash  = "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
 module "linux" {
   source                 = "./linux-vm"
   myip                   = local.myip
-  route_through_firewall = false
+  route_through_firewall = var.route_through_firewall
 }
 
 terraform {
