@@ -51,7 +51,7 @@ resource "azurerm_network_security_group" "nsg" {
   }
     security_rule {
     name                       = "HTTPS"
-    priority                   = 1002
+    priority                   = 1003
     direction                  = "Inbound"
     access                     = "Allow"
     protocol                   = "Tcp"
@@ -146,7 +146,8 @@ resource "azurerm_linux_virtual_machine" "linuxvm" {
   network_interface_ids = [azurerm_network_interface.nic.id]
   size                  =  "Standard_DS2_v2" //"Standard_DS1_v2"
 
-user_data = filebase64("${path.module}/cloud-init.yaml")
+  custom_data = filebase64("${path.module}/cloud-init.yaml")
+
   os_disk {
     name                 = "${var.vm_name}-myOsDisk"
     caching              = "ReadWrite"

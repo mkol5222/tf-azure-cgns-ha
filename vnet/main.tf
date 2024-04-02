@@ -36,6 +36,13 @@ resource "azurerm_subnet" "cp-back-subnet" {
     address_prefixes     = ["10.247.136.16/28"]  
 }
 
+resource "azurerm_subnet" "cp-man-subnet" {
+    name                 = "${var.project_prefix}-cp-man-subnet"
+    resource_group_name  = azurerm_resource_group.rg.name
+    virtual_network_name = azurerm_virtual_network.vnet.name
+    address_prefixes     = ["10.247.132.0/28"]  
+}
+
 output "vnet_rg" {
   value = azurerm_resource_group.rg
 }
@@ -49,4 +56,8 @@ output "cp-front-subnet" {
 
 output "cp-back-subnet" {
   value = azurerm_subnet.cp-back-subnet
+}
+
+output "cp-man-subnet" {
+  value = azurerm_subnet.cp-man-subnet
 }

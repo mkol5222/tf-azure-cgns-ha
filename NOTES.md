@@ -6,7 +6,7 @@ az login
 az account list -o table
 
 # working folder
-cd /workspaces/tf-playground/37-cgns-azha-upgrade/
+cd /workspaces/tf-azure-cgns-ha
 
 # create Owner SP for your subcription to use with TF
 ./create-az-sp-for-cp-tf.sh
@@ -21,17 +21,32 @@ subscription_id = "f4ad5xxx"
 EOF
 
 
-
-
+# aliast
+alias tf=terraform
 
 # build
 tf init -upgrade
 tf apply -target module.vnet -auto-approve
-# SC1 token!
+
+tf destroy -target module.cpman -auto-approve
+
+# SC1 token! - in case we use Smart-1 Cloud management
 tf apply -target module.cpha1 -auto-approve
 tf apply -target module.linux -auto-approve
-# SC1 token!
-tf apply -target module.cpha2 -auto-approve
+
+# on cpman
+
+ssh admin@$(terraform output -raw cpman_ip)
+mgmt_cli -r true set api-settings accepted-api-calls-from 'All IP addresses' --domain 'System Data'; api restart
+
+# create api user
+mgmt_cli -r true add administrator name "api" permissions-profile "read write all" authentication-method "api key"  --domain 'System Data' --format json
+
+# add api-key
+# https://sc1.checkpoint.com/documents/latest/APIs/index.html#cli/add-api-key~v1.9.1%20
+mgmt_cli -r true add api-key admin-name "api"  --domain 'System Data' --format json
+
+
 
 # connect to Linux
 mkdir -p ~/.ssh
@@ -49,7 +64,7 @@ ssh linux1
 #####
 # destroy
 # NODE1 active before destroy - wait for VIP move!!!
-tf destroy -target module.cpha2 -auto-approve
+
 tf destroy -target module.linux -auto-approve
 # NODE1 active before destroy
 tf destroy -target module.cpha1 -auto-approve
@@ -62,3 +77,8 @@ az ad sp list --display-name CPHAReader --query "[].{id:appId}" -o tsv
 az ad sp delete --id $(az ad sp list --display-name CPHAdeployer --query "[].{id:appId}" -o tsv)
 az ad sp delete --id $(az ad sp list --display-name CPHAReader --query "[].{id:appId}" -o tsv)
 az ad sp list --all --show-mine -o table
+
+
+---
+### replacing Linux - e.g. to reinstall from scratch
+ terraform apply -replace module.linux1.azurerm_linux_virtual_machine.linuxvm
